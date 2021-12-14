@@ -28,6 +28,8 @@ import (
 
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+
+	api_v1 "k8s.io/api/core/v1"
 )
 
 var webhookErrMsg = `
@@ -50,17 +52,10 @@ type Webhook struct {
 
 // WebhookMessage for messages
 type WebhookMessage struct {
-	EventMeta EventMeta `json:"eventmeta"`
-	Text      string    `json:"text"`
-	Time      time.Time `json:"time"`
-}
-
-// EventMeta containes the meta data about the event occurred
-type EventMeta struct {
-	Kind      string `json:"kind"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Reason    string `json:"reason"`
+	Event  *api_v1.Event `json:"event"`
+	Text   string        `json:"text"`
+	Time   time.Time     `json:"time"`
+	Reason string        `json:"reason"`
 }
 
 // Init prepares Webhook configuration
@@ -99,14 +94,10 @@ func checkMissingWebhookVars(s *Webhook) error {
 
 func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
 	return &WebhookMessage{
-		EventMeta: EventMeta{
-			Kind:      e.Kind,
-			Name:      e.Name,
-			Namespace: e.Namespace,
-			Reason:    e.Reason,
-		},
-		Text: e.Message(),
-		Time: time.Now(),
+		Event:  e.Event,
+		Text:   e.Message(),
+		Time:   time.Now(),
+		Reason: e.Reason,
 	}
 }
 
